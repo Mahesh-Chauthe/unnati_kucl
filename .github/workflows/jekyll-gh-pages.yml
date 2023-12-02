@@ -38,14 +38,31 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
 
-  # Deployment job
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: rtCamp/action-deploy-wordpress@v3
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app: wp
+spec:
+  selector:
+    matchLabels:
+      app: wp
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wp
+    spec:
+      containers:
+      - image: wordpress:latest
+        name: wordpress
+        env:
+        - name: WP_HOST
+          value: myservice
+        - name: WP_PASSWORD
+          value: centos
+        ports:
+        - containerPort: 80
+          name: wordpress
